@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       const data = await login({ email, password })
       storeTokens(data.access, data.refresh)
-      navigate('/auth/me', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (err: any) {
       const message = err?.response?.data?.detail ?? 'Unable to sign in. Check credentials.'
       setError(message)

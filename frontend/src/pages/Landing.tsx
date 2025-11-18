@@ -1,3 +1,5 @@
+import { Link } from 'react-router-dom'
+
 const features = [
   {
     title: 'Hyper-Personalized Tests',
@@ -83,12 +85,12 @@ export default function LandingPage() {
             <a className="transition hover:text-brand" href="#stories">
               Stories
             </a>
-            <a
+            <Link
               className="rounded-full bg-ink px-5 py-2 text-sm text-white shadow-lg shadow-brand/30 transition hover:bg-brand"
-              href="/auth/login"
+              to="/auth/login"
             >
               Launch app
-            </a>
+            </Link>
           </nav>
         </header>
 
@@ -108,18 +110,18 @@ export default function LandingPage() {
                 </p>
               </div>
               <div className="flex flex-wrap gap-4">
-                <a
+                <Link
                   className="rounded-full bg-brand px-8 py-3 font-semibold text-white shadow-lg shadow-brand/40 transition hover:bg-brand-dark"
-                  href="/auth/register"
+                  to="/auth/register"
                 >
                   Request a personalized test
-                </a>
-                <a
+                </Link>
+                <Link
                   className="rounded-full border border-slate-200 px-8 py-3 font-semibold text-ink transition hover:border-brand hover:text-brand"
-                  href="/auth/login"
+                  to="/auth/login"
                 >
                   Explore admin workspace
-                </a>
+                </Link>
               </div>
               <div className="flex gap-8 pt-4">
                 {stats.slice(0, 2).map((stat) => (
@@ -244,12 +246,12 @@ export default function LandingPage() {
               <p className="text-sm text-muted">Invite your first student or onboard your guidance team today.</p>
             </div>
             <div className="flex flex-wrap justify-center gap-4">
-              <a
+              <Link
                 className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-brand/20 transition hover:bg-brand"
-                href="/auth/register"
+                to="/auth/register"
               >
                 Book a demo
-              </a>
+              </Link>
               <button className="rounded-full border border-slate-200 px-6 py-3 text-sm font-semibold text-ink transition hover:border-brand hover:text-brand">
                 Download brochure
               </button>
