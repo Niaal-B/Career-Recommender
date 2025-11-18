@@ -12,6 +12,7 @@ import RequestsPage from './pages/admin/RequestsPage'
 import ReviewsPage from './pages/admin/ReviewsPage'
 import ComingSoon from './pages/dashboard/ComingSoon'
 import StudentDashboard from './pages/dashboard/StudentDashboard'
+import StudentRequestsPage from './pages/dashboard/StudentRequestsPage'
 
 function App() {
   return (
@@ -35,7 +36,7 @@ function App() {
           element={
             <ProtectedRoute role="student">
               <DashboardLayout>
-                <ComingSoon title="Test requests" />
+                <StudentRequestsPage />
               </DashboardLayout>
             </ProtectedRoute>
           }
