@@ -3,11 +3,13 @@ import type { FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 
 import { BrandLogo } from '../../components/BrandLogo'
+import { useAuth } from '../../context/AuthContext'
 import { storeTokens } from '../../lib/api'
 import { login } from '../../services/auth'
 
 export default function LoginPage() {
   const navigate = useNavigate()
+  const { refreshUser } = useAuth()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -20,7 +22,10 @@ export default function LoginPage() {
     try {
       const data = await login({ email, password })
       storeTokens(data.access, data.refresh)
-      navigate('/dashboard', { replace: true })
+      await refreshUser()
+      const userRole = typeof data.user === 'object' && data.user ? (data.user as { role?: string }).role : undefined
+      const destination = userRole === 'admin' ? '/admin' : '/dashboard'
+      navigate(destination, { replace: true })
     } catch (err: any) {
       const message = err?.response?.data?.detail ?? 'Unable to sign in. Check credentials.'
       setError(message)

@@ -2,9 +2,14 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { DashboardLayout } from './layouts/DashboardLayout'
+import { AdminLayout } from './layouts/AdminLayout'
 import LandingPage from './pages/Landing'
 import LoginPage from './pages/auth/LoginPage'
 import RegisterPage from './pages/auth/RegisterPage'
+import AdminDashboard from './pages/admin/AdminDashboard'
+import QuestionBuilderPage from './pages/admin/QuestionBuilderPage'
+import RequestsPage from './pages/admin/RequestsPage'
+import ReviewsPage from './pages/admin/ReviewsPage'
 import ComingSoon from './pages/dashboard/ComingSoon'
 import StudentDashboard from './pages/dashboard/StudentDashboard'
 
@@ -42,6 +47,46 @@ function App() {
               <DashboardLayout>
                 <ComingSoon title="Recommendations" />
               </DashboardLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminLayout>
+                <AdminDashboard />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/requests"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminLayout>
+                <RequestsPage />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/questions"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminLayout>
+                <QuestionBuilderPage />
+              </AdminLayout>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/admin/reviews"
+          element={
+            <ProtectedRoute role="admin">
+              <AdminLayout>
+                <ReviewsPage />
+              </AdminLayout>
             </ProtectedRoute>
           }
         />
