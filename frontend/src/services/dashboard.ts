@@ -72,3 +72,22 @@ export const submitTest = async (testId: number) => {
   const response = await api.post(`student/tests/${testId}/submit/`)
   return response.data
 }
+
+export const fetchCompletedTests = async () => {
+  const response = await api.get('admin/tests/completed/')
+  return response.data
+}
+
+export const fetchTestAnswers = async (testId: number) => {
+  const response = await api.get(`admin/tests/${testId}/answers/`)
+  return response.data
+}
+
+export const createRecommendation = async (testId: number, payload: {
+  career_name: string
+  summary: string
+  steps: Array<{ order: number; title: string; description: string }>
+}) => {
+  const response = await api.post(`admin/tests/${testId}/recommendation/`, payload)
+  return response.data
+}

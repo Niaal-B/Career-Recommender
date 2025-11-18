@@ -5,8 +5,9 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
-from .models import Option, PersonalizedTest, Question, StudentAnswer, TestRequest, User
+from .models import CareerRecommendation, Option, PersonalizedTest, Question, RoadmapStep, StudentAnswer, TestRequest, User
 from .serializers import (
+    CareerRecommendationCreateSerializer,
     CareerRecommendationSerializer,
     CustomTokenObtainPairSerializer,
     PersonalizedTestSerializer,
@@ -315,3 +316,107 @@ class StudentTestSubmitView(APIView):
             'message': 'Test submitted successfully.',
             'test': PersonalizedTestSerializer(test).data
         })
+
+
+class AdminCompletedTestsListView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request):
+        if request.user.role != User.Roles.ADMIN:
+            raise PermissionDenied("Only admins can view completed tests.")
+        tests = PersonalizedTest.objects.filter(
+            status=PersonalizedTest.Status.COMPLETED
+        ).select_related('request', 'request__student').prefetch_related('questions').order_by('-completed_at')
+        return Response({
+            'tests': [
+                {
+                    'id': test.id,
+                    'request_id': test.request.id,
+                    'student': {
+                        'email': test.request.student.email,
+                        'qualification': test.request.qualification_snapshot,
+                        'interests': test.request.interests_snapshot,
+                    },
+                    'completed_at': test.completed_at,
+                    'questions_count': test.questions.count(),
+                    'has_recommendation': hasattr(test, 'recommendation'),
+                }
+                for test in tests
+            ]
+        })
+
+
+class AdminTestAnswersView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, test_id):
+        if request.user.role != User.Roles.ADMIN:
+            raise PermissionDenied("Only admins can view test answers.")
+        try:
+            test = PersonalizedTest.objects.prefetch_related(
+                'questions', 'questions__options', 'questions__answers', 'questions__answers__option'
+            ).get(id=test_id, status=PersonalizedTest.Status.COMPLETED)
+        except PersonalizedTest.DoesNotExist:
+            raise PermissionDenied("Test not found or not completed.")
+        student = test.request.student
+        answers_data = []
+        for question in test.questions.all().order_by('order'):
+            answer = StudentAnswer.objects.filter(student=student, question=question).first()
+            answers_data.append({
+                'question': {
+                    'id': question.id,
+                    'prompt': question.prompt,
+                    'order': question.order,
+                },
+                'options': [
+                    {
+                        'id': option.id,
+                        'label': option.label,
+                        'description': option.description,
+                        'order': option.order,
+                    }
+                    for option in question.options.all().order_by('order')
+                ],
+                'selected_answer': {
+                    'option_id': answer.option.id if answer and answer.option else None,
+                    'option_label': answer.option.label if answer and answer.option else None,
+                } if (answer and answer.option) else None,
+            })
+        return Response({
+            'test': {
+                'id': test.id,
+                'request_id': test.request.id,
+                'student': {
+                    'email': student.email,
+                    'qualification': test.request.qualification_snapshot,
+                    'interests': test.request.interests_snapshot,
+                },
+                'completed_at': test.completed_at,
+                'answers': answers_data,
+            }
+        })
+
+
+class AdminCreateRecommendationView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def post(self, request, test_id):
+        if request.user.role != User.Roles.ADMIN:
+            raise PermissionDenied("Only admins can create recommendations.")
+        try:
+            test = PersonalizedTest.objects.get(id=test_id, status=PersonalizedTest.Status.COMPLETED)
+        except PersonalizedTest.DoesNotExist:
+            raise PermissionDenied("Test not found or not completed.")
+        if hasattr(test, 'recommendation'):
+            return Response({'error': 'Recommendation already exists for this test.'}, status=400)
+        serializer = CareerRecommendationCreateSerializer(data=request.data)
+        if serializer.is_valid():
+            recommendation = serializer.save(
+                personalized_test=test,
+                admin=request.user
+            )
+            return Response({
+                'message': 'Recommendation created successfully.',
+                'recommendation': CareerRecommendationSerializer(recommendation).data
+            }, status=201)
+        return Response(serializer.errors, status=400)

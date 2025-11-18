@@ -2,9 +2,12 @@ from django.urls import path
 from rest_framework_simplejwt.views import TokenRefreshView
 
 from .views import (
+    AdminCompletedTestsListView,
+    AdminCreateRecommendationView,
     AdminPersonalizedTestCreateView,
     AdminPersonalizedTestDetailView,
     AdminQuestionCreateView,
+    AdminTestAnswersView,
     AdminTestAssignView,
     AdminTestByRequestView,
     AdminTestRequestListView,
@@ -37,5 +40,8 @@ urlpatterns = [
     path('admin/tests/<int:pk>/', AdminPersonalizedTestDetailView.as_view(), name='admin-test-detail'),
     path('admin/tests/<int:test_id>/questions/', AdminQuestionCreateView.as_view(), name='admin-create-question'),
     path('admin/tests/<int:test_id>/assign/', AdminTestAssignView.as_view(), name='admin-assign-test'),
+    path('admin/tests/completed/', AdminCompletedTestsListView.as_view(), name='admin-completed-tests'),
+    path('admin/tests/<int:test_id>/answers/', AdminTestAnswersView.as_view(), name='admin-test-answers'),
+    path('admin/tests/<int:test_id>/recommendation/', AdminCreateRecommendationView.as_view(), name='admin-create-recommendation'),
 ]
 

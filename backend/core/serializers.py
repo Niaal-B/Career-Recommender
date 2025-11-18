@@ -155,10 +155,31 @@ class RoadmapStepSerializer(serializers.ModelSerializer):
         fields = ('id', 'order', 'title', 'description')
 
 
+class RoadmapStepCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = RoadmapStep
+        fields = ('order', 'title', 'description')
+
+
 class CareerRecommendationSerializer(serializers.ModelSerializer):
     steps = RoadmapStepSerializer(many=True)
 
     class Meta:
         model = CareerRecommendation
         fields = ('id', 'career_name', 'summary', 'created_at', 'steps')
+
+
+class CareerRecommendationCreateSerializer(serializers.ModelSerializer):
+    steps = RoadmapStepCreateSerializer(many=True)
+
+    class Meta:
+        model = CareerRecommendation
+        fields = ('career_name', 'summary', 'steps')
+
+    def create(self, validated_data):
+        steps_data = validated_data.pop('steps')
+        recommendation = CareerRecommendation.objects.create(**validated_data)
+        for step_data in steps_data:
+            RoadmapStep.objects.create(recommendation=recommendation, **step_data)
+        return recommendation
 
