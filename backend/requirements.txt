@@ -8,4 +8,5 @@ packaging==25.0
 psycopg2-binary==2.9.11
 PyJWT==2.10.1
 python-dotenv==1.2.1
+reportlab==4.2.5
 sqlparse==0.5.3

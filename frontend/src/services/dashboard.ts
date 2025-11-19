@@ -78,6 +78,36 @@ export const fetchStudentRecommendations = async () => {
   return response.data
 }
 
+export const exportRecommendationPDF = async (recommendationId: number) => {
+  const response = await api.get(`student/recommendations/${recommendationId}/export/`, {
+    responseType: 'blob',
+  })
+  
+  // Create a blob URL and trigger download
+  const blob = new Blob([response.data], { type: 'application/pdf' })
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  
+  // Extract filename from Content-Disposition header or use default
+  const contentDisposition = response.headers['content-disposition']
+  let filename = `CareerPath_Recommendation_${recommendationId}.pdf`
+  if (contentDisposition) {
+    const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+    if (filenameMatch) {
+      filename = filenameMatch[1]
+    }
+  }
+  
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+  
+  return { success: true }
+}
+
 export const fetchCompletedTests = async () => {
   const response = await api.get('admin/tests/completed/')
   return response.data

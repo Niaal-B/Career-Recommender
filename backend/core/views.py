@@ -1,3 +1,4 @@
+from django.http import HttpResponse
 from django.utils import timezone
 from rest_framework import generics, permissions
 from rest_framework.exceptions import PermissionDenied
@@ -6,6 +7,7 @@ from rest_framework.views import APIView
 from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .models import CareerRecommendation, Option, PersonalizedTest, Question, RoadmapStep, StudentAnswer, TestRequest, User
+from .pdf_generator import generate_recommendation_pdf
 from .serializers import (
     CareerRecommendationCreateSerializer,
     CareerRecommendationSerializer,
@@ -453,3 +455,32 @@ class AdminCreateRecommendationView(APIView):
                 'recommendation': CareerRecommendationSerializer(recommendation).data
             }, status=201)
         return Response(serializer.errors, status=400)
+
+
+class StudentRecommendationExportView(APIView):
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get(self, request, recommendation_id):
+        if request.user.role != User.Roles.STUDENT:
+            raise PermissionDenied("Only students can export their recommendations.")
+        try:
+            recommendation = CareerRecommendation.objects.select_related(
+                'personalized_test', 'personalized_test__request', 'personalized_test__request__student'
+            ).prefetch_related('steps').get(
+                id=recommendation_id,
+                personalized_test__request__student=request.user
+            )
+        except CareerRecommendation.DoesNotExist:
+            raise PermissionDenied("Recommendation not found.")
+        
+        student = recommendation.personalized_test.request.student
+        
+        # Generate PDF
+        pdf_buffer = generate_recommendation_pdf(recommendation, student)
+        
+        # Create HTTP response with PDF
+        response = HttpResponse(pdf_buffer.read(), content_type='application/pdf')
+        filename = f"CareerPath_Recommendation_{recommendation.career_name.replace(' ', '_')}_{recommendation.created_at.strftime('%Y%m%d')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        
+        return response
